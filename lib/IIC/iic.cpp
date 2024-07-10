@@ -46,7 +46,7 @@ uint8_t I2C_Read(uint8_t mcuAddr, uint8_t regAddr)
     ret = Wire.endTransmission(false);
     if (ret == 0)
     {
-        Serial.println("I2C_Read--Ok!");
+        // Serial.println("I2C_Read--Ok!");
     }
     else
     {

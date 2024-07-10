@@ -240,7 +240,7 @@ uint16_t battery_per()
     Serial.println(a_value);
     return a_value;
 
-    // return 5;
+    // return 100;
 }
 
 /**
@@ -275,17 +275,28 @@ void sysstate(uint8_t *H_value, uint8_t *L_value, float *battery_A)
 /**
  * @brief REG 0x0F: 快充协议指示
  * bit:7 PD版本指示 0: PD2.0 1: PD3.0   注意此指示只在PD沟通后有效
- * bit:6-4 sink快充协议指示 0: 非快充  * 1: PD sink 2: / 3: HV sink 4: AFC sink 5: FCP sink 6: SCP sink 7: PE1.1 sink
- * bit:3-0 source快充协议指示 0: 非快充 1: PD source 2: PPS source 3: QC2.0 source 4: QC3.0 source 5: FCP source 6: PE2.0 /1.1 source 7: SFCP source 8: AFC source 9: SCP source 10-15: reserved
+ * bit:6-4 充电sink快充协议指示 0: 非快充  * 1: PD sink 2: / 3: HV sink 4: AFC sink 5: FCP sink 6: SCP sink 7: PE1.1 sink
+ * bit:3-0 放电source快充协议指示 0: 非快充 1: PD source 2: PPS source 3: QC2.0 source 4: QC3.0 source 5: FCP source 6: PE2.0 /1.1 source 7: SFCP source 8: AFC source 9: SCP source 10-15: reserved
  * @return uint8_t
  */
-uint8_t Protocol()
+uint8_t Sink_Protocol() // 充电协议
 {
-    I2C_Read(SW6208_address, 0x0F);
-    Serial.println("Protocol------------------------------------");
-    return I2C_Read(SW6208_address, 0x0F);
+    // Serial.print("Sink_Protocol------------------------------------");
+    // Serial.println(I2C_Read(SW6208_address, 0x0F) >> 4 & 0x07);
+    if (I2C_Read(SW6208_address, 0x0F) >> 4 & 0x07 == 1 && I2C_Read(SW6208_address, 0x0F) >> 7 & 0x1 == 1) // PD3.0
+        return 2;
+    else
+        return I2C_Read(SW6208_address, 0x0F) >> 4 & 0x07;
 }
-
+uint8_t Source_Protocol() // 放电协议
+{
+    // Serial.print("Source_Protocol------------------------------------");
+    // Serial.println(I2C_Read(SW6208_address, 0x0F) & 0x0F);
+    if (I2C_Read(SW6208_address, 0x0F) & 0x0F == 1 && I2C_Read(SW6208_address, 0x0F) >> 7 & 0x1 == 1) // PD3.0
+        return 10;
+    else
+        return I2C_Read(SW6208_address, 0x0F) & 0x0F;
+}
 /**
  * @brief 开启或退出小电流   0X10    4  写1
  */
@@ -355,7 +366,27 @@ void A2_OFF() // A2口触发拔出事件
 {
     I2C_Write(SW6208_address, 0x19, 0X8) == 0;
 }
-
+/**
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ * -----------------------------------------以下为setup配置----------------
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
 // 关闭所有输出口
 void AC_OFF()
 {
@@ -364,11 +395,35 @@ void AC_OFF()
 }
 
 /**
+ * 小电流预打开   按键作用
+ */
+void Small_A_Set()
+{
+    if (I2C_Read(SW6208_address, 0x03) != 0x4F || I2C_Read(SW6208_address, 0x30) != 0x4 || I2C_Read(SW6208_address, 0x33) != 0x3)
+    {
+        I2C_Write(SW6208_address, 0x03, 0x4F); // 0100 1111  //1: 进入小电流充电模式   0: 在小电流充电和WLED都支持时，优先响应小电流充电模式    3: 仅显示电量
+        I2C_Write(SW6208_address, 0x30, 0x4);  // 0100  // 轻载检测电流设置 VOUT<7.65V 或者 VOUT>7.65V 且 reg0x30[0]=0:  默认:55mA  此设置为:10mA
+        I2C_Write(SW6208_address, 0x33, 0x3);  // 0011  // 小电流使能
+    }
+}
+/**
  * @brief 设置NTC温度上限保护50℃ 改为 60℃
- *
  */
 void NTCLimit()
 {
-    I2C_Write(SW6208_address, 0x47, 0X0);  // Boost NTC温度自适应功能使能   使能    高于自适应温度门限后，ntc温度每上升1度，vout下降800mv   (温度达不到，自适应阈值100°)基本没用
-    I2C_Write(SW6208_address, 0x48, 0XE0); // Charger NTC高温保护门限 60°       0xC0  55°    默认50°
+    if (I2C_Read(SW6208_address, 0x47) != 0X0 || I2C_Read(SW6208_address, 0x48) != 0XE0)
+    {
+        I2C_Write(SW6208_address, 0x47, 0X0);  // Boost NTC温度自适应功能使能   使能    高于自适应温度门限后，ntc温度每上升1度，vout下降800mv   (温度达不到，自适应阈值100°)基本没用
+        I2C_Write(SW6208_address, 0x48, 0XE0); // Charger NTC高温保护门限 60°       0xC0  55°    默认50°
+    }
+}
+/**
+ * @brief // 打开12V输入
+ */
+void Open12V()
+{
+    if (I2C_Read(SW6208_address, 0x0A) != 0X18)
+    {
+        I2C_Write(SW6208_address, 0x0A, 0X18); // 打开12V输入
+    }
 }

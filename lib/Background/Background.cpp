@@ -123,8 +123,11 @@ void PowerLOGO() // 开机LOGO
  * @param xnum  电池循环次次数
  * @param batper 电池百分比
  * @param battemp 电池温度
+ * @param sinkProtocol 快充协议
+ * @param sourceProtocol 快放协议
  */
-void lcdlayout01(uint16_t xunhuan, uint8_t bat_per, float battery_V, float ic_temp, float sys_outinv, float battery_A, float bat_ntc, uint8_t sys, uint8_t A_C, uint8_t bt_icon)
+void lcdlayout01(uint16_t xunhuan, uint8_t bat_per, float battery_V, float ic_temp, float sys_outinv, float battery_A, float bat_ntc,
+                 uint8_t sys, uint8_t smalla, uint8_t A_C, uint8_t bt_icon, uint8_t sinkProtocol, uint8_t sourceProtocol)
 {
     char num_n[10];
     float a = 0, b = 0;
@@ -150,106 +153,141 @@ void lcdlayout01(uint16_t xunhuan, uint8_t bat_per, float battery_V, float ic_te
         bat = 1;
     sprite1.createSprite(240, 135); // 设置精灵画布大小    //横屏  240  135
     sprite1.fillScreen(TFT_BLACK);  // 背景填充
-    sprite1.loadFont(KaiTi22);      // 设置自定义字库 字体
-    sprite1.setTextDatum(TL_DATUM); // 字体左上角显示
+
+    sprite1.loadFont(KaiTi22);      // 字体
+    sprite1.setTextDatum(TL_DATUM); // 字体左上角为原点
 
     /**
-     *  第一列 固定 eg
+     *  第一列 固定
      */
-    // mcu芯片温度T ，布局固定部分  列1行1
-    sprite1.fillRoundRect(0, 0, 24, 24, 5, TFT_CYAN); // 位置，宽高，圆角半径 ，背景色  ////实心圆角矩形
-    sprite1.setTextColor(TFT_RED);
-    sprite1.drawString("芯", 1, 1); // 写字 跟位置
-
-    // 电池电压U，
-    sprite1.fillRoundRect(0, 27, 24, 24, 5, TFT_YELLOW); // 位置，宽高，圆角半径 ，背景色  ////实心圆角矩形
+    sprite1.fillRoundRect(0, 0, 24, 24, 5, TFT_CYAN);
+    sprite1.fillRoundRect(0, 27, 24, 24, 5, TFT_YELLOW);
+    sprite1.fillRoundRect(0, 54, 24, 24, 5, TFT_PINK);
+    sprite1.fillRoundRect(0, 81, 24, 24, 5, TFT_YELLOW);
+    sprite1.fillRoundRect(0, 111, 24, 24, 5, TFT_PINK);
     sprite1.setTextColor(TFT_BLACK);
-    sprite1.drawString("池", 1, 28); // 写字 跟位置
-
-    // 系统电压，
-    sprite1.fillRoundRect(0, 54, 24, 24, 5, TFT_PINK); // 位置，宽高，圆角半径 ，背景色  ////实心圆角矩形
-    sprite1.setTextColor(TFT_BLACK);
-    sprite1.drawString("压", 1, 55); // 写字 跟位置
-
-    // 充放电流
-    sprite1.fillRoundRect(0, 81, 24, 24, 5, TFT_YELLOW); // 位置，宽高，圆角半径 ，背景色  ////实心圆角矩形
-    sprite1.setTextColor(TFT_BLACK);
-    sprite1.drawString("流", 1, 82); // 写字 跟位置
-
-    // 充放功率
-    sprite1.fillRoundRect(0, 111, 24, 24, 5, TFT_PINK); // 位置，宽高，圆角半径 ，背景色  ////实心圆角矩形
-    sprite1.setTextColor(TFT_BLACK);
-    sprite1.drawString("功", 1, 112); // 写字 跟位置
+    sprite1.drawString("温", 1, 1);
+    sprite1.drawString("压", 1, 28);
+    sprite1.drawString("流", 1, 55);
+    sprite1.drawString("功", 1, 82);
+    sprite1.drawString("协", 1, 112);
 
     /**
-     * 第三列 固定 eg
+     * 第二列 固定
      */
-    // 电池温度NTC  ，布局固定部分  列3行1
-    sprite1.fillRoundRect(90, 0, 24, 24, 5, TFT_PINK); // 位置，宽高，圆角半径 ，背景色  ////实心圆角矩形
-    sprite1.setTextColor(TFT_BLACK);
-    sprite1.drawString("温", 91, 1); // 写字 跟位置
+    sprite1.fillRoundRect(90, 0, 24, 24, 5, TFT_PINK);
+    sprite1.fillRoundRect(90, 27, 24, 24, 5, TFT_PINK);
+    sprite1.fillRoundRect(90, 54, 24, 24, 5, TFT_YELLOW);
+    sprite1.fillRoundRect(90, 81, 24, 24, 5, TFT_PINK);
+    sprite1.fillRoundRect(90, 111, 24, 24, 5, TFT_CYAN);
+    sprite1.drawString("池", 91, 1);
+    sprite1.drawString("池", 91, 28);
+    sprite1.drawString("循", 90, 112);
+    sprite1.loadFont(JianTi26);
+    sprite1.drawString("A", 94, 55);
+    sprite1.drawString("C", 94, 82);
 
-    // 蓝牙图标
-    //  sprite1.setSwapBytes(true); // RGB --> BGR
-    // sprite1.pushImage(90, 27, 24, 24, imgbleimg24);
-    sprite1.fillRoundRect(90, 27, 24, 24, 5, TFT_PINK); // 位置，宽高，圆角半径 ，背景色  ////实心圆角矩形
-    sprite1.setTextColor(TFT_BLACK);
-    sprite1.drawString("池", 91, 28); // 写字 跟位置
-
-    sprite1.loadFont(JianTi26); // 设置自定义字库 字体
-    // A口状态 ，
-    sprite1.fillRoundRect(90, 54, 24, 24, 5, TFT_YELLOW); // 位置，宽高，圆角半径 ，背景色  ////实心圆角矩形
-    sprite1.setTextColor(TFT_BLACK);
-    sprite1.drawString("A", 94, 55); // 写字 跟位置
-
-    // C口状态
-    sprite1.fillRoundRect(90, 81, 24, 24, 5, TFT_PINK); // 位置，宽高，圆角半径 ，背景色  ////实心圆角矩形
-    sprite1.setTextColor(TFT_BLACK);
-    sprite1.drawString("C", 94, 82); // 写字 跟位置
-
-    sprite1.loadFont(KaiTi22);
-    // 电池容量
-    sprite1.fillRoundRect(90, 111, 24, 24, 5, TFT_CYAN); // 位置，宽高，圆角半径 ，背景色  ////实心圆角矩形
-    sprite1.setTextColor(TFT_BLACK);
-    sprite1.drawString("循", 90, 112); // 写字 跟位置
     /**
-     * 第二列实时数据
+     * 第一列  实时数据
      */
-    sprite1.loadFont(JianTi20); // 设置自定义字库 字体
+    sprite1.loadFont(JianTi20);
     sprite1.setTextColor(TFT_WHITE);
-    // 温度值写入sprite1 &lcd
-    // 芯片 温度 值写入sprite1 &lcd
-    sprintf(num_n, "%.1f℃", ic_temp);
-    sprite1.drawString(num_n, 27, 4); // 实时信息显示
+    sprintf(num_n, "%.1f℃", bat_ntc); // 电池温度
+    sprite1.drawString(num_n, 27, 4);
+    sprintf(num_n, "%.2fV", sys_outinv); // 压
+    sprite1.drawString(num_n, 27, 31);
+    sprintf(num_n, "%.2fA", battery_A); // 流
+    sprite1.drawString(num_n, 27, 58);
+    sprintf(num_n, "%.1fw", sys_outinv * battery_A); // 功
+    sprite1.drawString(num_n, 27, 85);
+    // 快充协议
+    //* bit:7 PD版本指示 0: PD2.0 1: PD3.0   注意此指示只在PD沟通后有效
+    //* bit:6-4 充电sink快充协议指示 0: 非快充  * 1: PD sink 2: / 3: HV sink 4: AFC sink 5: FCP sink 6: SCP sink 7: PE1.1 sink  (2:PD3.0)
+    //* bit:3-0 放电source快充协议指示 0: 非快充 1: PD source 2: PPS source 3: QC2.0 source 4: QC3.0 source 5: FCP source
+    //                          6: PE2.0 /1.1 source 7: SFCP source 8: AFC source 9: SCP source 10-15: reserved(10:PD3.0)
+    if (sys == 2) // 充电
+    {
+        switch (sinkProtocol) // 快充协议
+        {
+        case 0:
+            sprite1.drawString("NO", 27, 115);
+            break;
+        case 1:
+            sprite1.drawString("PD2.0", 27, 115);
+            break;
+        case 2:
+            sprite1.drawString("PD3.0", 27, 115);
+            break;
+        case 3:
+            sprite1.drawString("HV", 27, 115);
+            break;
+        case 4:
+            sprite1.drawString("AFC", 27, 115);
+            break;
+        case 5:
+            sprite1.drawString("FCP", 27, 115);
+            break;
+        case 6:
+            sprite1.drawString("SCP", 27, 115);
+            break;
+        case 7:
+            sprite1.drawString("PE1.1", 27, 115);
+            break;
 
-    // 电池电压值写入sprite1 &lcd
-    sprintf(num_n, "%.2fV", battery_V);
-    sprite1.drawString(num_n, 27, 31); // 实时信息显示
-
-    // 系统电压
-    sprintf(num_n, "%.2fV", sys_outinv);
-    sprite1.drawString(num_n, 27, 58); // 实时信息显示
-
-    // 充放电流
-    sprintf(num_n, "%.2fA", battery_A);
-    sprite1.drawString(num_n, 27, 85); // 实时信息显示
-
-    // 功率
-    sprintf(num_n, "%.1fw", sys_outinv * battery_A);
-    sprite1.drawString(num_n, 27, 115); // 实时信息显示
-
+        default:
+            break;
+        }
+    }
+    else if (sys == 1) // 放电
+    {
+        switch (sourceProtocol) // 快放协议
+        {
+        case 0:
+            sprite1.drawString("NO", 27, 115);
+            break;
+        case 1:
+            sprite1.drawString("PD2.0", 27, 115);
+            break;
+        case 2:
+            sprite1.drawString("PPS", 27, 115);
+            break;
+        case 3:
+            sprite1.drawString("QC2.0", 27, 115);
+            break;
+        case 4:
+            sprite1.drawString("QC3.0", 27, 115);
+            break;
+        case 5:
+            sprite1.drawString("FCP", 27, 115);
+            break;
+        case 6:
+            sprite1.drawString("PE2/1", 27, 115);
+            break;
+        case 7:
+            sprite1.drawString("SFCP", 27, 115);
+            break;
+        case 8:
+            sprite1.drawString("AFC", 27, 115);
+            break;
+        case 9:
+            sprite1.drawString("SCP", 27, 115);
+            break;
+        case 10:
+            sprite1.drawString("PD3.0", 27, 115);
+            break;
+        default:
+            break;
+        }
+    }
+    else
+        sprite1.drawString("---", 27, 115);
     /**
-     * 第四列实时数据
+     * 第二列 实时数据
      */
-    // 电池温度NTC
-    sprintf(num_n, "%.1f℃", bat_ntc);
+    sprintf(num_n, "%.2fV", battery_V); // 电池电压
     sprite1.drawString(num_n, 117, 4);
-
-    // 蓝牙状态
-    // sprite1.drawString("OFF", 117, 31);
-    // sprite1.drawString("OFF", 117, 31);
-    sprintf(num_n, "%.2fA", sys_outinv * battery_A / battery_V);
-    sprite1.drawString(num_n, 117, 31); // 电池电流
+    sprintf(num_n, "%.2fA", sys_outinv * battery_A / battery_V); // 电池电流
+    sprite1.drawString(num_n, 117, 31);
 
     // A口状态
     if (A_C == 1 || A_C == 5)
@@ -277,26 +315,27 @@ void lcdlayout01(uint16_t xunhuan, uint8_t bat_per, float battery_V, float ic_te
     sprite1.setTextColor(TFT_WHITE);
     sprite1.setTextDatum(CC_DATUM); // 字体居中
     // 电量百分比   右上角
-    sprintf(num_n, "%d", bat_per); // 传值
     if (bat_per < 10)
-    { // 小于10   一个字符右移一点   改为红色字体
-        sprite1.setTextColor(TFT_RED);
-        sprite1.drawString(num_n, 211, 17); // 电量百分比红色显示
-    }
-    else if (bat_per == 100)
     {
-        sprite1.drawString(num_n, 211, 17);
+        sprite1.setTextColor(TFT_RED); // 小于10   改为红色字体
     }
-    else
-    {
-        sprite1.drawString(num_n, 211, 17);
-    }
+    sprintf(num_n, "%d", bat_per);
+    sprite1.drawString(num_n, 211, 17); // 电池百分比显示
     /**
      * 大电池图标
      */
-    sprite1.fillRoundRect(208 - 6, 33, 20, 4, 2, TFT_GREEN); // 电池框
-    sprite1.drawRoundRect(198 - 6, 36, 40, 66, 7, TFT_GREEN);
-    sprite1.drawRoundRect(199 - 6, 37, 38, 64, 7, TFT_GREEN);
+    if (smalla == 1) // 小电流打开  电池框变红色
+    {
+        sprite1.fillRoundRect(208 - 6, 33, 20, 4, 2, TFT_RED); // 电池框
+        sprite1.drawRoundRect(198 - 6, 36, 40, 66, 7, TFT_RED);
+        sprite1.drawRoundRect(199 - 6, 37, 38, 64, 7, TFT_RED);
+    }
+    else
+    {
+        sprite1.fillRoundRect(208 - 6, 33, 20, 4, 2, TFT_GREEN); // 电池框
+        sprite1.drawRoundRect(198 - 6, 36, 40, 66, 7, TFT_GREEN);
+        sprite1.drawRoundRect(199 - 6, 37, 38, 64, 7, TFT_GREEN);
+    }
     switch (bat)
     {
     case 1:
@@ -312,7 +351,7 @@ void lcdlayout01(uint16_t xunhuan, uint8_t bat_per, float battery_V, float ic_te
     case 6:
         sprite1.fillRoundRect(201 - 6, 84, 34, 8, 2, TFT_DARKGREY);
     case 7:
-        sprite1.fillRoundRect(201 - 6, 93, 34, 8, 2, TFT_RED);
+        sprite1.fillRoundRect(201 - 6, 92, 34, 8, 2, TFT_RED);
         break;
     default:
         break;
@@ -364,8 +403,8 @@ void lcdlayout01(uint16_t xunhuan, uint8_t bat_per, float battery_V, float ic_te
  * @param bt_ntc 电池温度
  * @param bat_per 电池百分比
  */
-void BackgroundTime2(uint8_t A_C, uint8_t bt_icon, float sys_outinv, float battery_A, float sys_w, float ic_temp,
-                     float bat_ntc, uint8_t bat_per, uint16_t xunhuan)
+void BackgroundTime2(uint8_t A_C, uint8_t bt_icon, float sys_outinv, float battery_A, float sys_w, float ic_temp, float bat_ntc,
+                     uint8_t bat_per, uint16_t xunhuan, uint8_t sys, uint8_t sinkProtocol, uint8_t sourceProtocol)
 {
     char draw_num[20];
     if (bat_per > 100)
@@ -435,12 +474,95 @@ void BackgroundTime2(uint8_t A_C, uint8_t bt_icon, float sys_outinv, float batte
     sprite1.drawString("系", 154, 89);  // 上5
     sprite1.drawString("循", 154, 120); // 上5
     sprite1.setTextColor(TFT_RED);      // 设置字体颜色
-    sprintf(draw_num, "%.1f℃", ic_temp);
-    sprite1.drawString(draw_num, 203, 58); // 上5
-    sprite1.setTextColor(TFT_GOLD);        // 设置字体颜色
     sprintf(draw_num, "%.1f℃", bat_ntc);
-    sprite1.drawString(draw_num, 203, 89); // 上5
-    sprite1.setTextColor(TFT_GREEN);       // 设置字体颜色
+    sprite1.drawString(draw_num, 203, 58); // 上5
+
+    // 快充协议
+    //* bit:7 PD版本指示 0: PD2.0 1: PD3.0   注意此指示只在PD沟通后有效
+    //* bit:6-4 充电sink快充协议指示 0: 非快充  * 1: PD sink 2: / 3: HV sink 4: AFC sink 5: FCP sink 6: SCP sink 7: PE1.1 sink  (2:PD3.0)
+    //* bit:3-0 放电source快充协议指示 0: 非快充 1: PD source 2: PPS source 3: QC2.0 source 4: QC3.0 source 5: FCP source
+    //                          6: PE2.0 /1.1 source 7: SFCP source 8: AFC source 9: SCP source 10-15: reserved(10:PD3.0)
+    if (sys == 2) // 充电
+    {
+        switch (sinkProtocol) // 快充协议
+        {
+        case 0:
+            sprite1.drawString("NO", 203, 89);
+            break;
+        case 1:
+            sprite1.drawString("PD2.0", 203, 89);
+            break;
+        case 2:
+            sprite1.drawString("PD3.0", 203, 89);
+            break;
+        case 3:
+            sprite1.drawString("HV", 203, 89);
+            break;
+        case 4:
+            sprite1.drawString("AFC", 203, 89);
+            break;
+        case 5:
+            sprite1.drawString("FCP", 203, 89);
+            break;
+        case 6:
+            sprite1.drawString("SCP", 203, 89);
+            break;
+        case 7:
+            sprite1.drawString("PE1.1", 203, 89);
+            break;
+
+        default:
+            break;
+        }
+    }
+    else if (sys == 1) // 放电
+    {
+        switch (sourceProtocol) // 快放协议
+        {
+        case 0:
+            sprite1.drawString("NO", 203, 89);
+            break;
+        case 1:
+            sprite1.drawString("PD2.0", 203, 89);
+            break;
+        case 2:
+            sprite1.drawString("PPS", 203, 89);
+            break;
+        case 3:
+            sprite1.drawString("QC2.0", 203, 89);
+            break;
+        case 4:
+            sprite1.drawString("QC3.0", 203, 89);
+            break;
+        case 5:
+            sprite1.drawString("FCP", 203, 89);
+            break;
+        case 6:
+            sprite1.drawString("PE2/1", 203, 89);
+            break;
+        case 7:
+            sprite1.drawString("SFCP", 203, 89);
+            break;
+        case 8:
+            sprite1.drawString("AFC", 203, 89);
+            break;
+        case 9:
+            sprite1.drawString("SCP", 203, 89);
+            break;
+        case 10:
+            sprite1.drawString("PD3.0", 203, 89);
+            break;
+        default:
+            break;
+        }
+    }
+    else
+        sprite1.drawString("---", 203, 89);
+
+    // sprite1.setTextColor(TFT_GOLD);        // 设置字体颜色
+    // sprintf(draw_num, "%.1f℃", ic_ntc);
+    // sprite1.drawString(draw_num, 203, 89); // 上5
+    sprite1.setTextColor(TFT_GREEN); // 设置字体颜色
     sprintf(draw_num, "%d", xunhuan);
     sprite1.drawString(draw_num, 185, 120); // 上5
     sprite1.setTextColor(TFT_BLACK);        // 设置字体颜色
@@ -487,10 +609,10 @@ void BackgroundTime3(uint8_t week, float batv, float sysv, uint16_t workp, uint1
     sprite1.fillRoundRect(68, 70, 75, 25, 3, violef1);    // 6
     sprite1.fillRoundRect(151, 70, 48, 25, 3, TFT_BROWN); // 7
     sprite1.fillRoundRect(206, 69, 30, 30, 5, TFT_GREEN); // 8
-    sprite1.fillRoundRect(0, 104, 30, 30, 5, TFT_PINK);   // 下1
-    sprite1.fillRoundRect(75, 104, 30, 30, 5, TFT_WHITE); // 2
-    sprite1.drawFastVLine(200, 0, 30, TFT_WHITE);         // 线条竖
-    sprite1.setTextColor(TFT_BLACK);                      // 设置字体颜色
+    sprite1.fillRoundRect(0, 104, 30, 30, 5, TFT_PINK);   // 电池
+    sprite1.fillRoundRect(80, 104, 30, 30, 5, TFT_CYAN);  // 循环
+    // sprite1.drawFastVLine(200, 0, 30, TFT_WHITE);         // 线条竖
+    sprite1.setTextColor(TFT_BLACK); // 设置字体颜色
     switch (week)
     {
     case 1:
@@ -515,7 +637,7 @@ void BackgroundTime3(uint8_t week, float batv, float sysv, uint16_t workp, uint1
         sprite1.drawString("日", 221, 15);
         break;
     default:
-        sprite1.drawString("NO", 221, 15);
+        sprite1.drawString("-", 221, 15);
         break;
     }
     sprite1.drawFastHLine(0, 101, 240, TFT_WHITE);  // 线条横
@@ -525,47 +647,39 @@ void BackgroundTime3(uint8_t week, float batv, float sysv, uint16_t workp, uint1
     {
         if (ACstate == 1)
         {
-            sprite1.drawString("A", 175, 83);
-            // sprite1.fillRoundRect(85, 0, 30, 30, 5, TFT_RED); // 2
-            // sprite1.fillRoundRect(47, 0, 30, 30, 5, green3);     // 上1
+            sprite1.drawString("A", 221, 50);
+            sprite1.drawString("-", 221, 84);
         }
         if (ACstate == 4)
         {
-            sprite1.drawString("C", 175, 83);
-            // sprite1.fillRoundRect(47, 0, 30, 30, 5, TFT_RED); // 上1
-            // sprite1.fillRoundRect(85, 0, 30, 30, 5, TFT_YELLOW); // 2
+            sprite1.drawString("-", 221, 50);
+            sprite1.drawString("C", 221, 84);
         }
         if (ACstate == 5)
         {
-            sprite1.drawString("A&C", 175, 83);
-            // sprite1.fillRoundRect(47, 0, 30, 30, 5, TFT_RED); // 上1
-            // sprite1.fillRoundRect(85, 0, 30, 30, 5, TFT_RED); // 2
+            sprite1.drawString("A", 221, 50);
+            sprite1.drawString("C", 221, 84);
         }
     }
     else
     {
-        // sprite1.fillRoundRect(47, 0, 30, 30, 5, green3);     // 上1
-        // sprite1.fillRoundRect(85, 0, 30, 30, 5, TFT_YELLOW); // 2
-        sprite1.drawString("A/C", 175, 83);
+        sprite1.drawString("-", 221, 50);
+        sprite1.drawString("-", 221, 84);
     }
-    // sprite1.drawPng(shujuxianc, sizeof(shujuxianc), 49, 2); // 数据线c
-    // sprite1.drawPng(shujuxiana, sizeof(shujuxiana), 87, 2); // 数据线a
-    sprintf(draw_num, "%d", xnum);
-    sprite1.drawString(draw_num, 221, 84);
     if (workp >= 1)
     {
         if (workp == 1)
         {
-            sprite1.drawString("OT", 221, 50);
+            sprite1.drawString("OUT", 175, 83);
         }
         if (workp == 2)
         {
-            sprite1.drawString("IN", 221, 50);
+            sprite1.drawString("IN", 175, 83);
         }
     }
     else
     {
-        sprite1.drawString("NO", 221, 50); // 态
+        sprite1.drawString("NO", 175, 83); // 态
     }
     if (bt_icon)
     {
@@ -573,7 +687,7 @@ void BackgroundTime3(uint8_t week, float batv, float sysv, uint16_t workp, uint1
     }
     else
         sprite1.fillRoundRect(47, 0, 30, 30, 5, pink1); // 4
-    sprite1.drawPng(lanya3, sizeof(lanya3), 49, 2);     // 蓝牙
+    sprite1.drawPng(lanya3, sizeof(lanya3), 50, 3);     // 蓝牙
     sprite1.setTextDatum(TL_DATUM);                     // 字体左上角
     sprintf(draw_num, "%.1fV", sysv);
     sprite1.drawString(draw_num, 3, 41);
@@ -583,37 +697,43 @@ void BackgroundTime3(uint8_t week, float batv, float sysv, uint16_t workp, uint1
     sprite1.drawString(draw_num, 140, 41);
     sprintf(draw_num, "%.2fV", batv);
     sprite1.drawString(draw_num, 3, 73);
-    sprintf(draw_num, "%.1fwh", batvolume);
-    sprite1.drawString(draw_num, 71, 73);
-    sprintf(draw_num, "%d", xnum);
+    sprintf(draw_num, "%.1fwH", batvolume);
+    sprite1.drawString(draw_num, 70, 73);
 }
 
-void BackgroundTime3_2(uint8_t month, uint8_t day, float battemp, float temp, uint8_t hour, uint8_t minute, uint8_t sec, uint8_t xdl)
+void BackgroundTime3_2(uint8_t month, uint8_t day, float battemp, float temp, uint8_t hour, uint8_t minute, uint8_t sec, uint8_t xdl, uint16_t cycle)
 {
     char draw_num[20];
     sprite1.setTextDatum(CC_DATUM);  // 字体居中
     sprite1.setTextColor(TFT_BLACK); // 设置字体颜色
     if (xdl == 1)
     {
-        sprite1.fillRoundRect(85, 0, 30, 30, 5, TFT_RED); // 3
+        sprite1.fillRoundRect(83, 0, 30, 30, 5, TFT_RED); // 3
     }
     else
     {
-        sprite1.fillRoundRect(85, 0, 30, 30, 5, TFT_GREEN); // 3
+        sprite1.fillRoundRect(83, 0, 30, 30, 5, TFT_GREEN); // 3
     }
-    sprite1.drawPng(chongdian3, sizeof(chongdian3), 87, 2); // 充电
-    sprite1.fillRoundRect(120, 0, 75, 30, 5, TFT_GOLD);
-    sprintf(draw_num, "%d-%d", month, day);
-    sprite1.drawString(draw_num, 155, 15);
+    sprite1.drawPng(chongdian3, sizeof(chongdian3), 84, 1); // 充电
+    sprite1.fillRoundRect(120, 0, 80, 30, 5, TFT_GOLD);     // 日期
+    sprintf(draw_num, "%02d-%02d", month, day);
+    sprite1.drawString(draw_num, 160, 16);
     sprite1.setTextColor(TFT_WHITE);               // 设置字体颜色
     sprite1.drawPng(batt3, sizeof(batt3), 3, 108); // batt
     sprintf(draw_num, "%.0f℃", battemp);
-    sprite1.drawString(draw_num, 52, 121);
-    sprite1.drawPng(cput3, sizeof(cput3), 78, 108); // cput
-    sprintf(draw_num, "%.0f℃", temp);
-    sprite1.drawString(draw_num, 128, 121);
-    sprintf(draw_num, "%d:%d:%d", hour, minute, sec);
+    sprite1.drawString(draw_num, 55, 123);
+
+    // sprite1.drawPng(cput3, sizeof(cput3), 78, 108); // cput
+    // sprintf(draw_num, "%.0f℃", temp);
+    // sprite1.drawString(draw_num, 128, 121);
+    sprintf(draw_num, "%02d:%02d:%02d", hour, minute, sec);
     sprite1.drawString(draw_num, 197, 121);
+    sprintf(draw_num, "%d", cycle); // 循环
+    sprite1.drawString(draw_num, 130, 121);
+
+    sprite1.loadFont(KaiTi22);
+    sprite1.setTextColor(TFT_BLACK);
+    sprite1.drawString("循", 94, 120);
     sprite1.pushSprite(0, 0); // 显示在画布1上
     sprite1.deleteSprite();   // 删除精灵
     sprite1.unloadFont();     // 释放加载字体
@@ -634,36 +754,45 @@ void BackgroundTime3_2(uint8_t month, uint8_t day, float battemp, float temp, ui
  * @param bat_ntc 电池温度
  */
 void BackgroundTime4(float battery_V, float sys_outinv, uint8_t sys, float battery_A, float sys_w, uint8_t bat_per,
-                     uint8_t bt_icon, float ic_temp, float bat_ntc)
+                     uint8_t bt_icon, float ic_temp, float bat_ntc, uint8_t smalla, uint8_t A_C)
 {
     char draw_num[20];
     float v = 0, a = 0; // 电压  // 电流
-    // if (bat_per > 100)
-    //     bat_per = 100;
-    // if (bat_per < 0)
-    //     bat_per = 0;
+    int bat = 0;
+    if (bat_per > 100)
+        bat_per = 100;
+    if (bat_per < 0)
+        bat_per = 0;
+
+    if (bat_per >= 0 && bat_per < 15)
+        bat = 7;
+    if (bat_per >= 15 && bat_per < 30)
+        bat = 6;
+    if (bat_per >= 30 && bat_per < 45)
+        bat = 5;
+    if (bat_per >= 45 && bat_per < 60)
+        bat = 4;
+    if (bat_per >= 60 && bat_per < 75)
+        bat = 3;
+    if (bat_per >= 75 && bat_per < 90)
+        bat = 2;
+    if (bat_per >= 90 && bat_per <= 100)
+        bat = 1;
 
     sprite1.createSprite(240, 135); // 创建画布大小
     sprite1.fillScreen(TFT_BLACK);  // 设置背景颜色
     sprite1.loadFont(KaiTi22);      // 字体设置
-    sprite1.setTextDatum(TL_DATUM); // 字体左上角
+    sprite1.setTextDatum(TL_DATUM); // 字体左上角为原点
     /**
      *  上 两行信息
      */
-    // mcu芯片温度T ，布局固定部分  列1行1
-    sprite1.fillRoundRect(0, 0, 24, 24, 5, TFT_CYAN); // 位置，宽高，圆角半径 ，背景色  ////实心圆角矩形
-    sprite1.setTextColor(TFT_RED);
-    sprite1.drawString("芯", 1, 1);
-
-    // 电池温度NTC  ，布局固定部分  列3行1
-    sprite1.fillRoundRect(90, 0, 24, 24, 5, TFT_PINK); // 位置，宽高，圆角半径 ，背景色  ////实心圆角矩形
+    sprite1.fillRoundRect(0, 0, 24, 24, 5, TFT_CYAN);    // 左上
+    sprite1.fillRoundRect(0, 27, 24, 24, 5, TFT_YELLOW); // 坐下
+    sprite1.fillRoundRect(90, 0, 24, 24, 5, TFT_PINK);   // 右上
     sprite1.setTextColor(TFT_BLACK);
-    sprite1.drawString("温", 91, 1);
-
-    // 电池电压UC，布局固定部分
-    sprite1.fillRoundRect(0, 27, 24, 24, 5, TFT_YELLOW); // 位置，宽高，圆角半径 ，背景色  ////实心圆角矩形
-    sprite1.setTextColor(TFT_BLACK);
+    sprite1.drawString("池", 1, 1);
     sprite1.drawString("池", 1, 28);
+    sprite1.drawString("温", 91, 1);
     sprite1.drawPng(imgbleimg24, sizeof(imgbleimg24), 90, 27); // 蓝牙图标
 
     /**
@@ -671,13 +800,12 @@ void BackgroundTime4(float battery_V, float sys_outinv, uint8_t sys, float batte
      */
     sprite1.loadFont(JianTi20); // 设置自定义字库 字体
     sprite1.setTextColor(TFT_WHITE);
-    // 温度值写入sprite1 &lcd
-    sprintf(draw_num, "%.1f℃", ic_temp); // 芯片 温度
+    sprintf(draw_num, "%.2fV", battery_V); // 电池电压
     sprite1.drawString(draw_num, 27, 4);
+    sprintf(draw_num, "%.2fA", sys_w / battery_V); // 电池电流   功率/电池电压
+    sprite1.drawString(draw_num, 27, 31);
     sprintf(draw_num, "%.2f℃", bat_ntc); // 电池温度NTC
     sprite1.drawString(draw_num, 117, 4);
-    sprintf(draw_num, "%.2fV", battery_V); // 电池电压
-    sprite1.drawString(draw_num, 27, 31);
     if (bt_icon) // 蓝牙
     {
         sprite1.drawString("ON", 117, 31);
@@ -751,131 +879,111 @@ void BackgroundTime4(float battery_V, float sys_outinv, uint8_t sys, float batte
     sprintf(draw_num, "%.2fw", v * a); // 输出功率 = v * a
     sprite1.drawString(draw_num, 96, 111);
 
-    sprite1.loadFont(KaiTi18); // 设置字体
-    sprite1.setTextColor(TFT_WHITE);
-    if (sys >= 1)
-    {
-        if (sys == 1)
-        {
-            sprite1.drawString("放电中", 183, 115);
-            // sprite1.fillRoundRect(123, 0, 30, 30, 5, TFT_RED); // 3
-        }
-        if (sys == 2)
-        {
-            sprite1.drawString("充电中", 183, 115);
-            // sprite1.fillRoundRect(123, 0, 30, 30, 5, TFT_RED); // 3
-        }
-    }
-    else
-    {
-        // sprite1.fillRoundRect(123, 0, 30, 30, 5, TFT_GREEN); // 3
-        sprite1.drawString("空闲", 192, 115); // 态
-    }
-
     /**
-     * @brief 系统充放电状态 AC口状态
-     *
-     * @param H_value  系统状态 8充电 4 放电
-     * @param L_value   1/5 A口状态  4/5 C口状态
-     * @param battery_A 充电或者输出电流
+     * 右侧电池部分
      */
-
-    // if (ACstate == 1 || ACstate == 5)
-    //     sprite1.drawString("ON", 183, 115);
-    // else
-    //     sprite1.drawString("OFF", 183, 115); // A 状态
-    // sprite1.setTextColor(TFT_PINK);
-    // if (ACstate == 4 || ACstate == 5)
-    //     sprite1.drawString("ON", 183, 115);
-    // else
-    //     sprite1.drawString("OFF", 183, 115); // C 状态
-
-    // 电量百分比   右上角
     sprite1.loadFont(JianTi26);
     sprite1.setTextColor(TFT_WHITE);
-    sprintf(draw_num, "%d", bat_per);
-    // if (bat_per < 10)
-    // {
-    //     sprite1.setTextColor(TFT_RED);
-    //     sprite1.drawString(draw_num, 200, 4);
-    // }
-    // else
-    // {
-    //     sprite1.drawString(draw_num, 195, 4);
-    // }
-
+    sprite1.setTextDatum(CC_DATUM); // 字体居中
+    // 电量百分比   右上角
     if (bat_per < 10)
     {
-        sprite1.setTextColor(TFT_RED);
-        sprite1.drawString(draw_num, 203, 4);
+        sprite1.setTextColor(TFT_RED); // 小于10   改为红色字体
     }
-    else if (bat_per == 100)
-    {
-        sprite1.drawString(draw_num, 189, 4);
-    }
-    else
-    {
-        sprite1.drawString(draw_num, 195, 4);
-    }
+    sprintf(draw_num, "%d", bat_per);
+    sprite1.drawString(draw_num, 211, 17); // 电池百分比显示
 
     /**
      * 大电池图标
      */
-    sprite1.fillRoundRect(200, 32, 20, 5, 2, TFT_BLUE);   // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形   //正极头  电池帽
-    sprite1.drawRoundRect(190, 35, 40, 65, 10, TFT_BLUE); // 位置，宽高，圆角半径 ，背景色    ////空心圆角矩形  //双框
-    sprite1.drawRoundRect(191, 36, 38, 63, 10, TFT_BLUE); // 位置，宽高，圆角半径 ，背景色    ////空心圆角矩形  //双框2
-
-    // 大电池电量图标，电量 电格剩余量
-    if (bat_per >= 0 && bat_per <= 10)
+    if (smalla == 1) // 小电流打开  电池框变红色
     {
-        sprite1.fillRoundRect(195, 92, 30, 5, 1, TFT_RED); // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
+        sprite1.fillRoundRect(208 - 6, 33, 20, 4, 2, TFT_RED); // 电池框
+        sprite1.drawRoundRect(198 - 6, 36, 40, 66, 7, TFT_RED);
+        sprite1.drawRoundRect(199 - 6, 37, 38, 64, 7, TFT_RED);
     }
-    else if (bat_per > 10 && bat_per <= 25)
+    else
     {
-        sprite1.fillRoundRect(195, 92, 30, 5, 1, TFT_RED);    // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 83, 30, 5, 1, TFT_YELLOW); // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
+        sprite1.fillRoundRect(208 - 6, 33, 20, 4, 2, TFT_BLUE); // 电池框
+        sprite1.drawRoundRect(198 - 6, 36, 40, 66, 7, TFT_BLUE);
+        sprite1.drawRoundRect(199 - 6, 37, 38, 64, 7, TFT_BLUE);
     }
-    else if (bat_per > 25 && bat_per <= 40)
+    switch (bat)
     {
-        sprite1.fillRoundRect(195, 92, 30, 5, 1, TFT_RED);         // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 83, 30, 5, 1, TFT_YELLOW);      // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 74, 30, 5, 1, TFT_GREENYELLOW); // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
+    case 1:
+        sprite1.fillRoundRect(201 - 6, 39, 34, 8, 2, green3);
+    case 2:
+        sprite1.fillRoundRect(201 - 6, 48, 34, 8, 2, green2);
+    case 3:
+        sprite1.fillRoundRect(201 - 6, 57, 34, 8, 2, green1);
+    case 4:
+        sprite1.fillRoundRect(201 - 6, 66, 34, 8, 2, TFT_GOLD);
+    case 5:
+        sprite1.fillRoundRect(201 - 6, 75, 34, 8, 2, TFT_MAGENTA);
+    case 6:
+        sprite1.fillRoundRect(201 - 6, 84, 34, 8, 2, TFT_DARKGREY);
+    case 7:
+        sprite1.fillRoundRect(201 - 6, 92, 34, 8, 2, TFT_RED);
+        break;
+    default:
+        break;
     }
-    else if (bat_per > 40 && bat_per <= 55)
+    /**
+     * 以下 充放电 及 A  C  口 状态信息------------------------------------------------------------------------------------------
+     *   0 放电  1 充电    0x4
+     */
+    // 充放状态   AC状态
+    sprite1.loadFont(JianTi26);
+    sprite1.setTextColor(TFT_BLACK);
+    if (sys >= 1)
     {
-        sprite1.fillRoundRect(195, 92, 30, 5, 1, TFT_RED);         // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 83, 30, 5, 1, TFT_YELLOW);      // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 74, 30, 5, 1, TFT_GREENYELLOW); // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 65, 30, 5, 1, TFT_GREEN);       // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
+        if (sys == 1)
+        {
+            if (A_C == 1)
+            {
+                sprite1.fillRoundRect(210 - 12, 124 - 12, 24, 24, 5, TFT_CYAN);
+                sprite1.drawString("A", 210, 124);
+            }
+            if (A_C == 4)
+            {
+                sprite1.fillRoundRect(210 - 12, 124 - 12, 24, 24, 5, TFT_PINK);
+                sprite1.drawString("C", 210, 124);
+            }
+            if (A_C == 5)
+            {
+                sprite1.fillRoundRect(210 - 5 - 24, 124 - 12, 24, 24, 5, TFT_CYAN);
+                sprite1.fillRoundRect(210 + 5, 124 - 12, 24, 24, 5, TFT_PINK);
+                sprite1.drawString("A", 210 - 17, 124);
+                sprite1.drawString("C", 210 + 17, 124);
+            }
+        }
+        if (sys == 2)
+        {
+            if (A_C == 1)
+            {
+                sprite1.fillRoundRect(210 - 12, 124 - 12, 24, 24, 5, TFT_CYAN);
+                sprite1.drawString("A", 210, 124);
+            }
+            if (A_C == 4)
+            {
+                sprite1.fillRoundRect(210 - 12, 124 - 12, 24, 24, 5, TFT_PINK);
+                sprite1.drawString("C", 210, 124);
+            }
+            if (A_C == 5)
+            {
+                sprite1.fillRoundRect(210 - 5 - 24, 124 - 12, 24, 24, 5, TFT_CYAN);
+                sprite1.fillRoundRect(210 + 5, 124 - 12, 24, 24, 5, TFT_PINK);
+                sprite1.drawString("A", 210 - 17, 124);
+                sprite1.drawString("C", 210 + 17, 124);
+            }
+        }
     }
-    else if (bat_per > 55 && bat_per <= 70)
+    else
     {
-        sprite1.fillRoundRect(195, 92, 30, 5, 1, TFT_RED);         // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 83, 30, 5, 1, TFT_YELLOW);      // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 74, 30, 5, 1, TFT_GREENYELLOW); // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 65, 30, 5, 1, TFT_GREEN);       // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 56, 30, 5, 1, TFT_CYAN);        // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
+        sprite1.loadFont(KaiTi18); // 设置字体
+        sprite1.setTextColor(TFT_WHITE);
+        sprite1.drawString("空闲", 210, 124); // 态
     }
-    else if (bat_per > 70 && bat_per <= 85)
-    {
-        sprite1.fillRoundRect(195, 92, 30, 5, 1, TFT_RED);         // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 83, 30, 5, 1, TFT_YELLOW);      // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 74, 30, 5, 1, TFT_GREENYELLOW); // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 65, 30, 5, 1, TFT_GREEN);       // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 56, 30, 5, 1, TFT_CYAN);        // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 47, 30, 5, 1, TFT_WHITE);       // 位置，宽高，圆角半径 ，背景色   ///实心，圆角矩形
-    }
-    else if (bat_per > 85 && bat_per <= 100)
-    {
-        sprite1.fillRoundRect(195, 92, 30, 5, 1, TFT_RED);         // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 83, 30, 5, 1, TFT_YELLOW);      // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 74, 30, 5, 1, TFT_GREENYELLOW); // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 65, 30, 5, 1, TFT_GREEN);       // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 56, 30, 5, 1, TFT_CYAN);        // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-        sprite1.fillRoundRect(195, 47, 30, 5, 1, TFT_WHITE);       // 位置，宽高，圆角半径 ，背景色   ///实心，圆角矩形
-        sprite1.fillRoundRect(195, 38, 30, 5, 1, TFT_GREEN);       // 位置，宽高，圆角半径 ，背景色   ////实心，圆角矩形
-    }
-
     sprite1.pushSprite(0, 0); // 显示在画布1上
     sprite1.deleteSprite();   // 删除精灵
     sprite1.unloadFont();     // 释放加载字体
@@ -896,8 +1004,8 @@ void BackgroundTime4(float battery_V, float sys_outinv, uint8_t sys, float batte
  * @param bat_ntc 电池温度
  * @param A_C  A C 口状态
  */
-void BackgroundTime5(float battery_V, float sys_outinv, uint8_t sys, uint8_t A_C, float battery_A, float sys_w, uint8_t bat_per, float bat_m, uint8_t bt_icon,
-                     float ic_temp, float bat_ntc, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t sec, uint8_t week)
+void BackgroundTime5(uint8_t smalla, float battery_V, float sys_outinv, uint8_t sys, uint8_t A_C, float battery_A, float sys_w, uint8_t bat_per, float bat_m, uint8_t bt_icon,
+                     float ic_temp, float bat_ntc, uint8_t sinkProtocol, uint8_t sourceProtocol, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t sec, uint8_t week)
 {
     char draw_num[20];
     // float v = 0, a = 0; // 电压  // 电流
@@ -924,31 +1032,31 @@ void BackgroundTime5(float battery_V, float sys_outinv, uint8_t sys, uint8_t A_C
     switch (week) // 获取的为数字信息
     {
     case 1:
-        weeks = "周一";
+        weeks = "一";
         break;
     case 2:
-        weeks = "周二";
+        weeks = "二";
         break;
     case 3:
-        weeks = "周三";
+        weeks = "三";
         break;
     case 4:
-        weeks = "周四";
+        weeks = "四";
         break;
     case 5:
-        weeks = "周五";
+        weeks = "五";
         break;
     case 6:
-        weeks = "周六";
+        weeks = "六";
         break;
     case 7:
-        weeks = "周日";
+        weeks = "日";
         break;
     default:
-        weeks = "NO";
+        weeks = "0";
         break;
     }
-    sprintf(draw_num, "%d月%d日 %s", month, day, weeks); // 日期 星期
+    sprintf(draw_num, "%d月%d日 周%s", month, day, weeks); // 日期 星期
     sprite1.drawString(draw_num, 0, 24);
 
     if (bt_icon) // 蓝牙
@@ -960,10 +1068,18 @@ void BackgroundTime5(float battery_V, float sys_outinv, uint8_t sys, uint8_t A_C
 
     /**
      * 电量图标 外框
+     * 155--193  电量图标长度  高16像素   对齐20像素
      */
-    // 155--193  电量图标长度  高16像素   对齐20像素
-    sprite1.fillRoundRect(155, 8, 4, 6, 2, TFT_WHITE);   // 位置，宽高，圆角半径 ，背景色   // 实心，圆角矩形   //正极头  电池帽
-    sprite1.drawRoundRect(158, 3, 35, 16, 3, TFT_WHITE); // 位置，宽高，圆角半径 ，背景色   // 空心，圆角矩形   //框
+    if (smalla == 1) // 小电流模式  电池框改成红色
+    {
+        sprite1.fillRoundRect(155, 8, 4, 6, 2, TFT_RED);   // 实心，圆角矩形   //正极头  电池帽
+        sprite1.drawRoundRect(158, 3, 35, 16, 3, TFT_RED); // 空心，圆角矩形   //框
+    }
+    else
+    {
+        sprite1.fillRoundRect(155, 8, 4, 6, 2, TFT_WHITE);   // 实心，圆角矩形   //正极头  电池帽
+        sprite1.drawRoundRect(158, 3, 35, 16, 3, TFT_WHITE); // 空心，圆角矩形   //框
+    }
 
     if (sys == 2) // 充电
     {
@@ -1011,35 +1127,111 @@ void BackgroundTime5(float battery_V, float sys_outinv, uint8_t sys, uint8_t A_C
     {
         sprite1.fillRoundRect(160, 5, 31, 12, 1, color); // 位置，宽高，圆角半径 ，背景色
     }
-    // /**
-    //  *  百分比 数字显示
-    //  */
+    /**
+     *  百分比 数字显示  右上角
+     */
     sprite1.loadFont(JianTi26);
     sprite1.setTextColor(TFT_WHITE);
-    // 电量百分比   右上角
-    sprintf(draw_num, "%d", bat_per); // 传值
-    if (bat_per < 10)
-    { // 小于10   一个字符右移一点   改为红色字体
+    sprite1.setTextDatum(TC_DATUM); // 字体顶部居中
+    if (bat_per < 10)               // 小于10    改为红色字体
         sprite1.setTextColor(TFT_RED);
-        sprite1.drawString(draw_num, 205, 0); // 电量百分比红色显示
-    }
-    else
-    {
-        sprite1.drawString(draw_num, 195, 0); // 电量百分比显示
-    }
+    sprintf(draw_num, "%d", bat_per);     // 传值
+    sprite1.drawString(draw_num, 212, 0); // 电量百分比显示
 
-    // /**
-    //  *  系统信息  温度  功率
-    //  */
+    /**
+     *  系统信息  温度  功率
+     */
+    sprite1.setTextDatum(TL_DATUM);                      // 字体左上角显示
     sprite1.fillRoundRect(0, 45, 24, 24, 5, TFT_YELLOW); // 位置，宽高，圆角半径 ，背景色  ////实心圆角矩形
     sprite1.loadFont(KaiTi22);
     sprite1.setTextColor(TFT_BLACK);
-    sprite1.drawString("芯", 1, 45 + 1);
+    sprite1.drawString("协", 1, 45 + 1);
 
     sprite1.loadFont(JianTi26);
     sprite1.setTextColor(TFT_CYAN);
-    sprintf(draw_num, "%.2f℃", ic_temp);      // 芯片 温度
-    sprite1.drawString(draw_num, 27, 48 - 2); // 芯片 位置
+    // 快充协议
+    //* bit:7 PD版本指示 0: PD2.0 1: PD3.0   注意此指示只在PD沟通后有效
+    //* bit:6-4 充电sink快充协议指示 0: 非快充  * 1: PD sink 2: / 3: HV sink 4: AFC sink 5: FCP sink 6: SCP sink 7: PE1.1 sink  (2:PD3.0)
+    //* bit:3-0 放电source快充协议指示 0: 非快充 1: PD source 2: PPS source 3: QC2.0 source 4: QC3.0 source 5: FCP source
+    //                          6: PE2.0 /1.1 source 7: SFCP source 8: AFC source 9: SCP source 10-15: reserved(10:PD3.0)
+    if (sys == 2) // 充电
+    {
+        switch (sinkProtocol) // 快充协议
+        {
+        case 0:
+            sprite1.drawString("NO", 27, 48 - 2);
+            break;
+        case 1:
+            sprite1.drawString("PD2.0", 27, 48 - 2);
+            break;
+        case 2:
+            sprite1.drawString("PD3.0", 27, 48 - 2);
+            break;
+        case 3:
+            sprite1.drawString("HV", 27, 48 - 2);
+            break;
+        case 4:
+            sprite1.drawString("AFC", 27, 48 - 2);
+            break;
+        case 5:
+            sprite1.drawString("FCP", 27, 48 - 2);
+            break;
+        case 6:
+            sprite1.drawString("SCP", 27, 48 - 2);
+            break;
+        case 7:
+            sprite1.drawString("PE1.1", 27, 48 - 2);
+            break;
+
+        default:
+            break;
+        }
+    }
+    else if (sys == 1) // 放电
+    {
+        switch (sourceProtocol) // 快放协议
+        {
+        case 0:
+            sprite1.drawString("NO", 27, 48 - 2);
+            break;
+        case 1:
+            sprite1.drawString("PD2.0", 27, 48 - 2);
+            break;
+        case 2:
+            sprite1.drawString("PPS", 27, 48 - 2);
+            break;
+        case 3:
+            sprite1.drawString("QC2.0", 27, 48 - 2);
+            break;
+        case 4:
+            sprite1.drawString("QC3.0", 27, 48 - 2);
+            break;
+        case 5:
+            sprite1.drawString("FCP", 27, 48 - 2);
+            break;
+        case 6:
+            sprite1.drawString("PE2/1", 27, 48 - 2);
+            break;
+        case 7:
+            sprite1.drawString("SFCP", 27, 48 - 2);
+            break;
+        case 8:
+            sprite1.drawString("AFC", 27, 48 - 2);
+            break;
+        case 9:
+            sprite1.drawString("SCP", 27, 48 - 2);
+            break;
+        case 10:
+            sprite1.drawString("PD3.0", 27, 48 - 2);
+            break;
+        default:
+            break;
+        }
+    }
+    else
+        sprite1.drawString("----", 27, 48 - 2);
+    // sprintf(draw_num, "%.2f℃", ic_temp);      // 芯片 温度
+    // sprite1.drawString(draw_num, 27, 48 - 2); // 芯片 位置
     // 功率
     sprite1.fillRoundRect(0, 45 + 27, 24, 24, 5, TFT_YELLOW); // 位置，宽高，圆角半径 ，背景色  ////实心圆角矩形
     sprite1.loadFont(KaiTi22);
@@ -1049,7 +1241,7 @@ void BackgroundTime5(float battery_V, float sys_outinv, uint8_t sys, uint8_t A_C
     sprite1.loadFont(JianTi26);
     sprite1.setTextColor(TFT_CYAN);
     sprintf(draw_num, "%.2fw", sys_outinv * battery_A); // 功率 = sys_outinv * battery_A
-    sprite1.drawString(draw_num, 27, 48 + 25);
+    sprite1.drawString(draw_num, 27, 48 + 24);
 
     /**
      *  电池信息  温度  容量
@@ -1072,7 +1264,7 @@ void BackgroundTime5(float battery_V, float sys_outinv, uint8_t sys, uint8_t A_C
     sprite1.loadFont(JianTi26);
     sprite1.setTextColor(TFT_CYAN);
     sprintf(draw_num, "%.1fwH", bat_m); // 容量
-    sprite1.drawString(draw_num, 120 + 27, 48 + 25);
+    sprite1.drawString(draw_num, 120 + 27, 48 + 24);
 
     // //-------------------------------下方电压 电流信息-----------------------------------------------------------
     // 芯片画图
@@ -1107,46 +1299,73 @@ void BackgroundTime5(float battery_V, float sys_outinv, uint8_t sys, uint8_t A_C
     sprite1.fillRoundRect(120 + 41, 93 + 24, 58, 17, 5, TFT_PINK);  // 实心圆角矩形
     sprintf(draw_num, "%.2fA", sys_outinv * battery_A / battery_V); // 电池电流 ：   功率 / 电池电压
     sprite1.drawString(draw_num, 120 + 45, 93 + 24);
-
     /**
-     * A C 端口
+     * 充放状态   AC状态
      */
     sprite1.loadFont(JianTi20);
     sprite1.setTextColor(TFT_BLACK);
-    // if A_C == 5   A C 全开
-    if (A_C == 1 || A_C == 5) // A口开
-    {
-        sprite1.fillRoundRect(120, 24, 18, 18, 3, TFT_PINK); // 位置，宽高，半径  // 实心 圆角矩形
-        sprite1.drawString("A", 122, 25);
-    }
-    if (A_C == 4 || A_C == 5) // C口开
-    {
-        sprite1.fillRoundRect(145, 24, 18, 18, 3, TFT_CYAN); // 位置，宽高，半径  // 实心 圆角矩形
-        sprite1.drawString("C", 147, 25);
-    }
-
-    //---------------------------------------------//////////////////////--------可不要--------------------------
-    sprite1.loadFont(KaiTi18); //
-    sprite1.setTextColor(TFT_PINK);
     if (sys >= 1)
     {
         if (sys == 1)
         {
-            sprite1.drawString("放电中", 183, 24);
+            if (A_C == 1)
+            {
+                sprite1.fillRoundRect(231 - 18, 24, 18, 18, 3, TFT_CYAN);
+                sprite1.drawString("A", 231 - 15, 25);
+            }
+            if (A_C == 4)
+            {
+                sprite1.fillRoundRect(231 - 18, 24, 18, 18, 3, TFT_PINK);
+                sprite1.drawString("C", 231 - 15, 25);
+            }
+            if (A_C == 5)
+            {
+                sprite1.fillRoundRect(231 - 18 - 22, 24, 18, 18, 3, TFT_CYAN);
+                sprite1.fillRoundRect(231 - 18, 24, 18, 18, 3, TFT_PINK);
+                sprite1.drawString("A", 231 - 15 - 22, 25);
+                sprite1.drawString("C", 231 - 15, 25);
+            }
         }
         if (sys == 2)
         {
-            sprite1.drawString("充电中", 183, 24);
+            if (A_C == 1)
+            {
+                sprite1.fillRoundRect(231 - 18, 24, 18, 18, 3, TFT_CYAN);
+                sprite1.drawString("A", 231 - 15, 25);
+            }
+            if (A_C == 4)
+            {
+                sprite1.fillRoundRect(231 - 18, 24, 18, 18, 3, TFT_PINK);
+                sprite1.drawString("C", 231 - 15, 25);
+            }
+            if (A_C == 5)
+            {
+                sprite1.fillRoundRect(231 - 18 - 22, 24, 18, 18, 3, TFT_CYAN);
+                sprite1.fillRoundRect(231 - 18, 24, 18, 18, 3, TFT_PINK);
+                sprite1.drawString("A", 231 - 15 - 22, 25);
+                sprite1.drawString("C", 231 - 15, 25);
+            }
         }
     }
     else
     {
-        sprite1.drawString("空闲", 192, 24); // 态
+        sprite1.loadFont(KaiTi18); // 设置字体
+        sprite1.setTextColor(TFT_PINK);
+        sprite1.setTextDatum(TR_DATUM);      // 字体右上角为原点
+        sprite1.drawString("空闲", 231, 24); // 态
     }
     sprite1.pushSprite(0, 0); // 显示在画布1上
     sprite1.deleteSprite();   // 删除精灵
     sprite1.unloadFont();     // 释放加载字体
 }
+//-------------------------------------------------------------------------------------以上为主题布局-----------------------
+//-------------------------------------------------------------------------------------以上为主题布局-----------------------
+//-------------------------------------------------------------------------------------以上为主题布局-----------------------
+//-------------------------------------------------------------------------------------以上为主题布局-----------------------
+//-------------------------------------------------------------------------------------以上为主题布局-----------------------
+//-------------------------------------------------------------------------------------以上为主题布局-----------------------
+//-------------------------------------------------------------------------------------以上为主题布局-----------------------
+//-------------------------------------------------------------------------------------以上为主题布局-----------------------
 /**
  * 眼
  */
@@ -1221,42 +1440,12 @@ void Backgroundyan(uint16_t pngindex)
     sprite1.deleteSprite(); // 删除精灵
 }
 
-/**
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
-
+//----------------------------------------------------------------------------------以下为提示页面------------------------
+//----------------------------------------------------------------------------------以下为提示页面------------------------
+//----------------------------------------------------------------------------------以下为提示页面------------------------
+//----------------------------------------------------------------------------------以下为提示页面------------------------
+//----------------------------------------------------------------------------------以下为提示页面------------------------
+//----------------------------------------------------------------------------------以下为提示页面------------------------
 // 非正当获得设备采取措施
 void lost_Page()
 {

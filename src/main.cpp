@@ -49,15 +49,7 @@ void setup()
     if (EE_BLETimeRead() < 150 || EE_BLETimeRead() > 3600)                  // 蓝牙休眠时间150-3600s
         EE_BLETimeWrite(150);                                               // 不在范围  设置为 150
     EEPROM.commit();                                                        // 保存
-    /**
-     * 小电流预打开   按键作用
-     */
-    if (I2C_Read(SW6208_address, 0x03) != 0x4F || I2C_Read(SW6208_address, 0x30) != 0x4 || I2C_Read(SW6208_address, 0x33) != 0x3)
-    {
-        I2C_Write(SW6208_address, 0x03, 0x4F); // 0100 1111  //1: 进入小电流充电模式   0: 在小电流充电和WLED都支持时，优先响应小电流充电模式    3: 仅显示电量
-        I2C_Write(SW6208_address, 0x30, 0x4);  // 0100  // 轻载检测电流设置 VOUT<7.65V 或者 VOUT>7.65V 且 reg0x30[0]=0:  默认:55mA  此设置为:10mA
-        I2C_Write(SW6208_address, 0x33, 0x3);  // 0011  // 小电流使能
-    }
+
     /**
      * 丢失模式  关闭所有输出口
      */
@@ -105,17 +97,23 @@ void setup()
     //                         NULL,            //
     //                         NULL             // 核心  0/1  自动选择
     // );
-    NTCLimit(); // 设置电池NTC温度上限保护 60°
+
+    /**
+     * sw6208开机配置
+     */
+    Small_A_Set(); // 小电流预打开   按键作用
+    NTCLimit();    // 设置电池NTC温度上限保护 60°
+    Open12V();     // 打开12V输入
     Serial.println("ESP32_setup_OK");
 }
 
 void loop()
 {
     delay(200);
-    float battery_V, sys_outinv, ic_temp, ntc_v, battery_A, sys_w, bat_m, bat_ntc; // 变量电池电压   系统输入输出电压   ic温度   ntc电压   输入/输出电流   系统功率   电池容量   电池温度
-    uint16_t year, time, pass;                                                     // 年份   读蓝牙链接时间    四位密码
-    uint8_t bat_per, sys, A_C, protocol, month, day, hour, minute, sec, week;      // 电池百分比   系统充放电状态   系统输出口状态   快充协议    月  日  时  分  秒  星期
-    uint8_t smalla, a1, c1, topic, ota, idlock;                                    // 小电流开关   A1口状态1开0关     C1口状态1开0关      屏幕方向1上3下     OTA    ID锁
+    float battery_V, sys_outinv, ic_temp, ntc_v, battery_A, sys_w, bat_m, bat_ntc;                // 变量电池电压   系统输入输出电压   ic温度   ntc电压   输入/输出电流   系统功率   电池容量   电池温度
+    uint16_t year, time, pass;                                                                    // 年份   读蓝牙链接时间    四位密码
+    uint8_t bat_per, sys, A_C, sinkProtocol, sourceProtocol, month, day, hour, minute, sec, week; // 电池百分比   系统充放电状态   系统输出口状态   快充协议  快放协议    月  日  时  分  秒  星期
+    uint8_t smalla, a1, c1, topic, ota, idlock;                                                   // 小电流   A1口状态1开0关     C1口状态1开0关      屏幕方向1上3下     OTA    ID锁
 
     uint8_t currentTime = EEPROM.read(5); // 睡眠时间
     unsigned long currentTime1;           // 程序执行计时
@@ -139,8 +137,9 @@ void loop()
         delay(5);
         printTime(&year, &month, &day, &hour, &minute, &sec, &week); // 从DS1302获取时间数据     年 月 日 时 分 秒 周
         delay(5);
-        smalla = xdlzt();      // 小电流状态
-        protocol = Protocol(); // 快充协议
+        smalla = xdlzt();                   // 小电流状态
+        sinkProtocol = Sink_Protocol();     // 充电协议
+        sourceProtocol = Source_Protocol(); // 放电协议
 
         Serial.println(ESP.getEfuseMac() & 0X0000FFFFFFFFFFFF, HEX); // chipID  //MAC
 
@@ -165,7 +164,7 @@ void loop()
             }
             else
             beijing1:
-                lcdlayout01(cycle, bat_per, battery_V, ic_temp, sys_outinv, battery_A, bat_ntc, sys, A_C, bt_icon);
+                lcdlayout01(cycle, bat_per, battery_V, ic_temp, sys_outinv, battery_A, bat_ntc, sys, smalla, A_C, bt_icon, sinkProtocol, sourceProtocol);
             break;
         case 2:
             if (yan == 1)
@@ -184,7 +183,7 @@ void loop()
             }
             else
             beijing2:
-                BackgroundTime2(A_C, bt_icon, sys_outinv, battery_A, sys_w, ic_temp, bat_ntc, bat_per, cycle);
+                BackgroundTime2(A_C, bt_icon, sys_outinv, battery_A, sys_w, ic_temp, bat_ntc, bat_per, cycle, sys, sinkProtocol, sourceProtocol);
             break;
         case 3:
             if (yan == 1)
@@ -205,7 +204,7 @@ void loop()
             {
             beijing3:
                 BackgroundTime3(week, battery_V, sys_outinv, sys, A_C, battery_A, sys_w, bat_m, cycle, bat_per, bt_icon);
-                BackgroundTime3_2(month, day, bat_ntc, ic_temp, hour, minute, sec, smalla);
+                BackgroundTime3_2(month, day, bat_ntc, ic_temp, hour, minute, sec, smalla, cycle);
             }
             break;
         case 4:
@@ -226,7 +225,7 @@ void loop()
             else
             {
             beijing4:
-                BackgroundTime4(battery_V, sys_outinv, sys, battery_A, sys_w, bat_per, bt_icon, ic_temp, bat_ntc);
+                BackgroundTime4(battery_V, sys_outinv, sys, battery_A, sys_w, bat_per, bt_icon, ic_temp, bat_ntc, smalla, A_C);
             }
             break;
         case 5:
@@ -247,7 +246,7 @@ void loop()
             else
             {
             beijing5:
-                BackgroundTime5(battery_V, sys_outinv, sys, A_C, battery_A, sys_w, bat_per, bat_m, bt_icon, ic_temp, bat_ntc, month, day, hour, minute, sec, week);
+                BackgroundTime5(smalla, battery_V, sys_outinv, sys, A_C, battery_A, sys_w, bat_per, bat_m, bt_icon, ic_temp, bat_ntc, sinkProtocol, sourceProtocol, month, day, hour, minute, sec, week);
             }
             break;
         default:
@@ -268,7 +267,7 @@ void loop()
             else
             {
             beijing10:
-                lcdlayout01(cycle, bat_per, battery_V, ic_temp, sys_outinv, battery_A, bat_ntc, sys, A_C, bt_icon);
+                lcdlayout01(cycle, bat_per, battery_V, ic_temp, sys_outinv, battery_A, bat_ntc, sys, smalla, A_C, bt_icon, sinkProtocol, sourceProtocol);
             }
             break;
         }
@@ -301,23 +300,23 @@ void loop()
                             switch (EEPROM.read(4))
                             {
                             case 1:
-                                lcdlayout01(cycle, bat_per, battery_V, ic_temp, sys_outinv, battery_A, bat_ntc, sys, A_C, bt_icon);
+                                lcdlayout01(cycle, bat_per, battery_V, ic_temp, sys_outinv, battery_A, bat_ntc, sys, smalla, A_C, bt_icon, sinkProtocol, sourceProtocol);
                                 break;
                             case 2:
-                                BackgroundTime2(A_C, bt_icon, sys_outinv, battery_A, sys_w, ic_temp, bat_ntc, bat_per, cycle);
+                                BackgroundTime2(A_C, bt_icon, sys_outinv, battery_A, sys_w, ic_temp, bat_ntc, bat_per, cycle, sys, sinkProtocol, sourceProtocol);
                                 break;
                             case 3:
                                 BackgroundTime3(week, battery_V, sys_outinv, sys, A_C, battery_A, sys_w, bat_m, cycle, bat_per, bt_icon);
-                                BackgroundTime3_2(month, day, bat_ntc, ic_temp, hour, minute, sec, smalla);
+                                BackgroundTime3_2(month, day, bat_ntc, ic_temp, hour, minute, sec, smalla, cycle);
                                 break;
                             case 4:
-                                BackgroundTime4(battery_V, sys_outinv, sys, battery_A, sys_w, bat_per, bt_icon, ic_temp, bat_ntc);
+                                BackgroundTime4(battery_V, sys_outinv, sys, battery_A, sys_w, bat_per, bt_icon, ic_temp, bat_ntc, smalla, A_C);
                                 break;
                             case 5:
-                                BackgroundTime5(battery_V, sys_outinv, sys, A_C, battery_A, sys_w, bat_per, bat_m, bt_icon, ic_temp, bat_ntc, month, day, hour, minute, sec, week);
+                                BackgroundTime5(smalla, battery_V, sys_outinv, sys, A_C, battery_A, sys_w, bat_per, bat_m, bt_icon, ic_temp, bat_ntc, sinkProtocol, sourceProtocol, month, day, hour, minute, sec, week);
                                 break;
                             default:
-                                lcdlayout01(cycle, bat_per, battery_V, ic_temp, sys_outinv, battery_A, bat_ntc, sys, A_C, bt_icon);
+                                lcdlayout01(cycle, bat_per, battery_V, ic_temp, sys_outinv, battery_A, bat_ntc, sys, smalla, A_C, bt_icon, sinkProtocol, sourceProtocol);
                                 break;
                             }
                             bleKeyboard.begin(); // 打开蓝牙
@@ -342,7 +341,9 @@ void loop()
                                 topic = EEPROM.read(3);  // 读用户设置的值（1上3下）屏幕方向
                                 time = EE_BLETimeRead(); // 读蓝牙链接时间
 
-                                smalla = xdlzt(); // 读取小电流状态
+                                sinkProtocol = Sink_Protocol();     // 充电协议
+                                sourceProtocol = Source_Protocol(); // 放电协议
+                                smalla = xdlzt();                   // 读取小电流状态
                                 Serial.print("smalla: ");
                                 Serial.println(smalla);
 
@@ -362,23 +363,23 @@ void loop()
                                 switch (EEPROM.read(4))
                                 {
                                 case 1:
-                                    lcdlayout01(cycle, bat_per, battery_V, ic_temp, sys_outinv, battery_A, bat_ntc, sys, A_C, bt_icon);
+                                    lcdlayout01(cycle, bat_per, battery_V, ic_temp, sys_outinv, battery_A, bat_ntc, sys, smalla, A_C, bt_icon, sinkProtocol, sourceProtocol);
                                     break;
                                 case 2:
-                                    BackgroundTime2(A_C, bt_icon, sys_outinv, battery_A, sys_w, ic_temp, bat_ntc, bat_per, cycle);
+                                    BackgroundTime2(A_C, bt_icon, sys_outinv, battery_A, sys_w, ic_temp, bat_ntc, bat_per, cycle, sys, sinkProtocol, sourceProtocol);
                                     break;
                                 case 3:
                                     BackgroundTime3(week, battery_V, sys_outinv, sys, A_C, battery_A, sys_w, bat_m, cycle, bat_per, bt_icon);
-                                    BackgroundTime3_2(month, day, bat_ntc, ic_temp, hour, minute, sec, smalla);
+                                    BackgroundTime3_2(month, day, bat_ntc, ic_temp, hour, minute, sec, smalla, cycle);
                                     break;
                                 case 4:
-                                    BackgroundTime4(battery_V, sys_outinv, sys, battery_A, sys_w, bat_per, bt_icon, ic_temp, bat_ntc);
+                                    BackgroundTime4(battery_V, sys_outinv, sys, battery_A, sys_w, bat_per, bt_icon, ic_temp, bat_ntc, smalla, A_C);
                                     break;
                                 case 5:
-                                    BackgroundTime5(battery_V, sys_outinv, sys, A_C, battery_A, sys_w, bat_per, bat_m, bt_icon, ic_temp, bat_ntc, month, day, hour, minute, sec, week);
+                                    BackgroundTime5(smalla, battery_V, sys_outinv, sys, A_C, battery_A, sys_w, bat_per, bat_m, bt_icon, ic_temp, bat_ntc, sinkProtocol, sourceProtocol, month, day, hour, minute, sec, week);
                                     break;
                                 default:
-                                    lcdlayout01(cycle, bat_per, battery_V, ic_temp, sys_outinv, battery_A, bat_ntc, sys, A_C, bt_icon);
+                                    lcdlayout01(cycle, bat_per, battery_V, ic_temp, sys_outinv, battery_A, bat_ntc, sys, smalla, A_C, bt_icon, sinkProtocol, sourceProtocol);
                                     break;
                                 }
                                 jsonBuffer1["chipid"] = ESP.getEfuseMac() & 0X0000FFFFFFFFFFFF;
@@ -487,7 +488,7 @@ void loop()
                                 Serial.println(EEPROM.read(3));
                                 Serial.print("them: ");
                                 Serial.println(EEPROM.read(4));
-                                Serial.print("sleepTime");
+                                Serial.print("sleepTime: ");
                                 Serial.println(EEPROM.read(5));
                                 Serial.print("BleTime: ");
                                 Serial.println(EE_BLETimeRead());

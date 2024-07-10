@@ -23,8 +23,8 @@ float battery_volume();                                              // 电池�
 uint16_t battery_per();                                              // 电池百分比获取
 void sysstate(uint8_t *H_value, uint8_t *L_value, float *battery_A); // 系统充放电L口和A1口的状态
 
-uint8_t Protocol(); // 快充协议指示
-
+uint8_t Sink_Protocol();   // 充电协议
+uint8_t Source_Protocol(); // 放电协议
 /**
  * @brief 小电流开关用到的函数
  */
@@ -38,7 +38,8 @@ void A2_OFF();         // A2口拔出
 void A1shijian(); // 触发A1口的插入
 
 void AC_OFF(); // 关闭所有输出口  bit 自动清零
-
-void NTCLimit(); // 设置NTC温度上限保护50℃ 改为55℃     温度每上升1度，电压下降800mv
+void Small_A_Set(); // 小电流预打开   按键作用
+void NTCLimit();    // 设置NTC温度上限保护50℃ 改为55℃     温度每上升1度，电压下降800mv
+void Open12V();     // 打开12V输入
 
 #endif
