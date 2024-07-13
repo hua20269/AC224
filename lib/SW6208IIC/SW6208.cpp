@@ -329,8 +329,8 @@ void SW6208init()
         I2C_Write(SW6208_address, 0x48, 0XE0); // Charger NTC高温保护门限 60°       0xC0  55°    默认50°
     }
 
-    if (I2C_Read(SW6208_address, 0x1A) != 0X18) 
-    {
-        I2C_Write(SW6208_address, 0x1A, 0X18); // 打开12V输入
-    }
+    // if (I2C_Read(SW6208_address, 0x1A) != 0X18) 
+    // {
+    //     I2C_Write(SW6208_address, 0x1A, 0X18); // 打开12V输入
+    // }
 }
