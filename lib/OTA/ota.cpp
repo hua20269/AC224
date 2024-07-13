@@ -50,7 +50,7 @@ void updateBin()
     // AutoWifi autowifi;   // 初始化一个自动配网对象
     // autowifi.webBegin(); // esp_AutoWifi库 配网
 
-    WiFi.begin(wifi_name, wifi_password); // 连接wifi
+    WiFi.begin(wifi_SSID, wifi_PASS); // 连接wifi
     vTaskDelay(1000);                     // WiFi 缓冲
     while (WiFi.status() != WL_CONNECTED)
     { // 等待连接wifi

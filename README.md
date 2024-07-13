@@ -1,10 +1,13 @@
 # AC224
 
-# 固件版本：v4.0
-# 硬件版本：v3.3
-# Flash: 4Mb
+固件版本：v4.0
 
-# 五款主题，增加OTA功能
-# SSID:2024   password:12345678
+硬件版本：v3.3
 
-# LastUpdate  24/7/10
+Flash: 4Mb
+
+7款主题，增加OTA功能
+
+SSID:2024   password:12345678
+
+LastUpdate  24/7/14
