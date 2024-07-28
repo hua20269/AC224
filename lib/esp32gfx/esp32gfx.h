@@ -10,6 +10,14 @@
 #define LCD_SCK 18
 #define LCD_CS 5
 
+//新46950 Test
+// #define LCD_BL 21
+// #define LCD_RES 22
+// #define LCD_DC 19
+// #define LCD_SDA 23
+// #define LCD_SCK 18
+// #define LCD_CS 5
+
 class LGFX : public lgfx::LGFX_Device
 {
     lgfx::Panel_ST7789 _panel_instance;

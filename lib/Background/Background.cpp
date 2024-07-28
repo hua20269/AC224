@@ -482,6 +482,7 @@ void BackgroundTime2(uint8_t A_C, uint8_t bt_icon, float sys_outinv, float batte
     //* bit:6-4 充电sink快充协议指示 0: 非快充  * 1: PD sink 2: / 3: HV sink 4: AFC sink 5: FCP sink 6: SCP sink 7: PE1.1 sink  (2:PD3.0)
     //* bit:3-0 放电source快充协议指示 0: 非快充 1: PD source 2: PPS source 3: QC2.0 source 4: QC3.0 source 5: FCP source
     //                          6: PE2.0 /1.1 source 7: SFCP source 8: AFC source 9: SCP source 10-15: reserved(10:PD3.0)
+    sprite1.setTextColor(TFT_GOLD);
     if (sys == 2) // 充电
     {
         switch (sinkProtocol) // 快充协议
@@ -600,17 +601,17 @@ void BackgroundTime3(uint8_t week, float batv, float sysv, uint16_t workp, uint1
     sprite1.fillRoundRect(4, 6, 29, 17, 1, lv1);
     sprintf(draw_num, "%d", batper);
     sprite1.drawString(draw_num, 18, 15);
-    sprite1.fillRoundRect(206, 0, 30, 30, 5, TFT_GREEN);        // 5
-    sprite1.fillRoundRect(0, 38, 62, 25, 3, pink1);             // 中1
-    sprite1.fillRoundRect(68, 38, 62, 25, 3, TFT_GOLD);         // 2
-    sprite1.fillRoundRect(138, 38, 62, 25, 3, TFT_GREEN);       // 3
-    sprite1.fillRoundRect(206, 35, 30, 30, 5, TFT_CYAN);        // 4
-    sprite1.fillRoundRect(0, 70, 62, 25, 3, TFT_RED);           // 5
-    sprite1.fillRoundRect(68, 70, 75, 25, 3, violef1);          // 6
-    sprite1.fillRoundRect(151, 70, 48, 25, 3, TFT_BROWN);       // 7
-    sprite1.fillRoundRect(206, 69, 30, 30, 5, TFT_GREEN);       // 8
-    sprite1.fillRoundRect(0, 104, 30, 30, 5, TFT_PINK);         // 电池
-    sprite1.fillRoundRect(80, 104, 30, 30, 5, TFT_GREENYELLOW); // 循环
+    sprite1.fillRoundRect(206, 0, 30, 30, 5, TFT_GREEN);      // 周
+    sprite1.fillRoundRect(0, 38, 62, 25, 3, pink1);           // 中1
+    sprite1.fillRoundRect(68, 38, 62, 25, 3, TFT_GOLD);       // 2
+    sprite1.fillRoundRect(138, 38, 62, 25, 3, TFT_GREEN);     // 3
+    sprite1.fillRoundRect(206, 35, 30, 30, 5, TFT_CYAN);      // A
+    sprite1.fillRoundRect(0, 70, 62, 25, 3, TFT_CYAN);        // 电池电压
+    sprite1.fillRoundRect(68, 70, 75, 25, 3, TFT_GREEN);      // 容量
+    sprite1.fillRoundRect(151, 70, 48, 25, 3, TFT_BROWN);     // 7
+    sprite1.fillRoundRect(206, 69, 30, 30, 5, TFT_GREEN);     // C
+    sprite1.fillRoundRect(0, 104, 30, 30, 5, TFT_PINK);       // 电池温度图标
+    sprite1.fillRoundRect(80, 104, 30, 30, 5, TFT_LIGHTGRAY); // 循环
     // sprite1.drawFastVLine(200, 0, 30, TFT_WHITE);         // 线条竖
     sprite1.setTextColor(TFT_BLACK); // 设置字体颜色
     switch (week)
@@ -643,29 +644,29 @@ void BackgroundTime3(uint8_t week, float batv, float sysv, uint16_t workp, uint1
     sprite1.drawFastHLine(0, 101, 240, TFT_WHITE);  // 线条横
     sprite1.drawFastVLine(151, 102, 33, TFT_WHITE); // 线条竖
     sprite1.loadFont(alibb);
+
+    // AC端口
     if (ACstate == 1 || ACstate == 4 || ACstate == 5)
     {
         if (ACstate == 1)
         {
-            sprite1.drawString("A", 221, 50);
-            sprite1.drawString("-", 221, 84);
+            sprite1.fillRoundRect(206, 35, 30, 30, 5, TFT_RED); // A
         }
         if (ACstate == 4)
         {
-            sprite1.drawString("-", 221, 50);
-            sprite1.drawString("C", 221, 84);
+            sprite1.fillRoundRect(206, 69, 30, 30, 5, TFT_RED); // C
         }
         if (ACstate == 5)
         {
-            sprite1.drawString("A", 221, 50);
-            sprite1.drawString("C", 221, 84);
+            sprite1.fillRoundRect(206, 35, 30, 30, 5, TFT_RED); // A
+            sprite1.fillRoundRect(206, 69, 30, 30, 5, TFT_RED); // C
         }
     }
-    else
-    {
-        sprite1.drawString("-", 221, 50);
-        sprite1.drawString("-", 221, 84);
-    }
+    // 放下面，盖上面方块
+    sprite1.drawString("A", 221, 50);
+    sprite1.drawString("C", 221, 84);
+
+    // 充放电状态
     if (workp >= 1)
     {
         if (workp == 1)

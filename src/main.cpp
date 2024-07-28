@@ -97,7 +97,7 @@ void setup()
     // );
 
     // sw6208开机配置
-    SW6208init(); // 1.按键作用      2.轻载时间设置为8s     3.小电流使能    4.NTC门限改为 60℃    5.打开12V输入
+    SW6208init(); // 1.取消按键作用      2.轻载时间设置为8s     3.小电流使能  //////----  4.NTC门限改为 60℃    5.打开12V输入
     Serial.println("ESP32_setup_OK");
 }
 
@@ -147,9 +147,10 @@ void loop()
                 for (uint16_t i = 1; i < 20; i++)
                 {
                     Backgroundyan(i);
-                    delay(50);
+                    vTaskDelay(50);
                     if (digitalRead(4) == 0)
                     {
+                        vTaskDelay(300); // 防止二次进入动画
                         yan ^= 1;
                         goto beijing1;
                         break;
@@ -166,9 +167,10 @@ void loop()
                 for (uint16_t i = 1; i < 20; i++)
                 {
                     Backgroundyan(i);
-                    delay(50);
+                    vTaskDelay(50);
                     if (digitalRead(4) == 0)
                     {
+                        vTaskDelay(300);
                         yan ^= 1;
                         goto beijing2;
                         break;
@@ -185,9 +187,10 @@ void loop()
                 for (uint16_t i = 1; i < 20; i++)
                 {
                     Backgroundyan(i);
-                    delay(50);
+                    vTaskDelay(50);
                     if (digitalRead(4) == 0)
                     {
+                        vTaskDelay(300);
                         yan ^= 1;
                         goto beijing3;
                         break;
@@ -207,9 +210,10 @@ void loop()
                 for (uint16_t i = 1; i < 20; i++)
                 {
                     Backgroundyan(i);
-                    delay(50);
+                    vTaskDelay(50);
                     if (digitalRead(4) == 0)
                     {
+                        vTaskDelay(300);
                         yan ^= 1;
                         goto beijing4;
                         break;
@@ -228,9 +232,10 @@ void loop()
                 for (uint16_t i = 1; i < 20; i++)
                 {
                     Backgroundyan(i);
-                    delay(50);
+                    vTaskDelay(50);
                     if (digitalRead(4) == 0)
                     {
+                        vTaskDelay(300);
                         yan ^= 1;
                         goto beijing5;
                         break;
@@ -249,9 +254,10 @@ void loop()
                 for (uint16_t i = 1; i < 20; i++)
                 {
                     Backgroundyan(i);
-                    delay(50);
+                    vTaskDelay(50);
                     if (digitalRead(4) == 0)
                     {
+                        vTaskDelay(300);
                         yan ^= 1;
                         goto beijing6;
                         break;
@@ -270,9 +276,10 @@ void loop()
                 for (uint16_t i = 1; i < 20; i++)
                 {
                     Backgroundyan(i);
-                    delay(50);
+                    vTaskDelay(50);
                     if (digitalRead(4) == 0)
                     {
+                        vTaskDelay(300);
                         yan ^= 1;
                         goto beijing7;
                         break;
@@ -291,9 +298,10 @@ void loop()
                 for (uint16_t i = 1; i < 20; i++)
                 {
                     Backgroundyan(i);
-                    delay(100);
+                    vTaskDelay(50);
                     if (digitalRead(4) == 0)
                     {
+                        vTaskDelay(300);
                         yan ^= 1;
                         goto beijing10;
                         break;
@@ -318,7 +326,7 @@ void loop()
         {
             if (digitalRead(4) == 0)
             {
-                delay(150);              // 消抖
+                delay(200);              // 消抖
                 if (digitalRead(4) == 0) // 此处进入眼睛动画
                 {
                     delay(300);                // 延时
