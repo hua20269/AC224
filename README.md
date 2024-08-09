@@ -10,4 +10,4 @@ Flash: 4Mb
 
 SSID:2024   password:12345678
 
-LastUpdate  24/7/28
+LastUpdate  24/8/9
